@@ -16,6 +16,10 @@ points without writing a lot of code.
 - Quickly propagating data across all its consumers
 - Handling pagination and infinitely flowing data
 
+## To-do
+
+- Implement mutation and paginated queries
+
 ## Installation
 
 ```sh
