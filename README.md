@@ -2,6 +2,8 @@
 
 Svelte library for managing, caching and syncing asynchronous and remote data.
 
+Uses `react-query` core.
+
 ## Installation
 
 ```
