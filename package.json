@@ -1,0 +1,25 @@
+{
+  "name": "@intrnl/svelte-query",
+  "description": "Svelte library for managing, caching and syncing asynchronous and remote data",
+  "version": "0.1.0",
+  "author": "intrnl",
+  "license": "MIT",
+  "main": "./dist/svelte-query.js",
+  "module": "./dist/svelte-query.mjs",
+  "svelte": "./lib/index.js",
+  "types": "./typings/index.d.ts",
+  "repository": {
+    "url": "https://github.com/intrnl/svelte-query"
+  },
+  "peerDependencies": {
+    "svelte": "^3.24.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.6.3",
+    "rollup": "^2.22.0",
+    "rollup-plugin-esbuild": "^2.3.0",
+    "rollup-plugin-svelte": "^5.2.3",
+    "rollup-plugin-terser": "^6.1.0",
+    "svelte": "^3.24.0"
+  }
+}
