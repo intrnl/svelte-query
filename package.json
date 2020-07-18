@@ -4,10 +4,13 @@
   "version": "0.1.0",
   "author": "intrnl",
   "license": "MIT",
-  "main": "./dist/svelte-query.js",
-  "module": "./dist/svelte-query.mjs",
-  "svelte": "./lib/index.js",
-  "types": "./typings/index.d.ts",
+  "files": [
+    "dist/",
+    "lib/",
+    "types/",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "url": "https://github.com/intrnl/svelte-query"
   },
