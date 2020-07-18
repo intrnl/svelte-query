@@ -11,6 +11,11 @@
   "repository": {
     "url": "https://github.com/intrnl/svelte-query"
   },
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -cw",
+    "prepublishOnly": "pnpm run build"
+  },
   "peerDependencies": {
     "svelte": "^3.24.0"
   },
