@@ -4,6 +4,18 @@ Svelte library for managing, caching and syncing asynchronous and remote data.
 
 Uses `react-query` core.
 
+## Motivation
+
+See the [Overview](https://react-query.tanstack.com/docs/overview) section of
+React Query for more details, essentially, it means dealing with these pain
+points without writing a lot of code.
+
+- Caching data and lazily loading them without mixing up with global state
+- Deduping multiple of the same request
+- Refetching data when it is "stale"
+- Quickly propagating data across all its consumers
+- Handling pagination and infinitely flowing data
+
 ## Installation
 
 ```sh
