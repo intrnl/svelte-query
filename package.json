@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "author": "intrnl",
   "license": "MIT",
+  "main": "dist/svelte-query.js",
+  "module": "dist/svelte-query.mjs",
+  "svelte": "lib/index.js",
+  "types": "types/index.d.ts",
   "files": [
     "dist/",
     "lib/",
