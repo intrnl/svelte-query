@@ -8,6 +8,7 @@
   "module": "dist/svelte-query.mjs",
   "svelte": "lib/index.js",
   "types": "types/index.d.ts",
+  "sideEffects": false,
   "files": [
     "dist/",
     "lib/",
