@@ -6,7 +6,7 @@ Uses `react-query` core.
 
 ## Installation
 
-```
+```sh
 # npm
 npm install @intrnl/svelte-query
 # pnpm
