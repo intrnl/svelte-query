@@ -12,6 +12,7 @@
   "files": [
     "dist/",
     "lib/",
+    "types/",
     "README.md",
     "LICENSE"
   ],
