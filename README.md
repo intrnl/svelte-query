@@ -18,7 +18,7 @@ points without writing a lot of code.
 
 ## To-do
 
-- Implement mutation and paginated queries
+- Implement mutation queries
 
 ## Installation
 
