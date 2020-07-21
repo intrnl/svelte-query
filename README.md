@@ -19,6 +19,7 @@ points without writing a lot of code.
 ## To-do
 
 - Implement mutation queries
+- Documentations
 
 ## Installation
 
