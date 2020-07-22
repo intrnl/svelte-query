@@ -1,6 +1,7 @@
 import svelte from 'rollup-plugin-svelte';
 import { terser } from 'rollup-plugin-terser';
-import esbuild from 'rollup-plugin-esbuild';
+// import esbuild from 'rollup-plugin-esbuild';
+import babel from '@rollup/plugin-babel';
 
 
 let watch = !!process.env.ROLLUP_WATCH;
@@ -35,7 +36,7 @@ let config = {
   external: ['svelte', 'svelte/internal', 'svelte/store'],
   plugins: [
     svelte({ immutable: true }),
-    esbuild({ target: 'es6', watch }),
+    babel(),
   ],
 };
 
