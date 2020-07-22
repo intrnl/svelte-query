@@ -1,6 +1,5 @@
 import svelte from 'rollup-plugin-svelte';
 import { terser } from 'rollup-plugin-terser';
-// import esbuild from 'rollup-plugin-esbuild';
 import babel from '@rollup/plugin-babel';
 
 

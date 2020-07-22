@@ -2,9 +2,7 @@ devDependencies:
   '@babel/core': 7.10.5
   '@babel/preset-env': 7.10.4_@babel+core@7.10.5
   '@rollup/plugin-babel': 5.1.0_@babel+core@7.10.5+rollup@2.22.0
-  esbuild: 0.6.3
   rollup: 2.22.0
-  rollup-plugin-esbuild: 2.3.0_esbuild@0.6.3+rollup@2.22.0
   rollup-plugin-svelte: 5.2.3_rollup@2.22.0+svelte@3.24.0
   rollup-plugin-terser: 6.1.0_rollup@2.22.0
   svelte: 3.24.0
@@ -1012,12 +1010,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-TIeXOaHAvfP7FemGUtAJxStmOc1YFGWFNqdey/4Nk41L9b1nMmDVDGNMIWhZJvOfJxix6Cv5FGEnBK+yvw3UTg==
-  /esbuild/0.6.3:
-    dev: true
-    hasBin: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-4lHgz/EvGLRQnDYzzrvW+eilaPHim5pCLz4mP0k0QIalD/n8Ji2NwQwoIa1uX+yKkbn9R/FAZvaEbodjx55rDg==
   /escalade/3.0.2:
     dev: true
     engines:
@@ -1257,16 +1249,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-ic+7JYiV8Vi2yzQGFWOkiZD5Z9z7O2Zhm9XMaTxdJExKasieFCr+yXZ/WmXsckHiKl12ar0y6XiXDx3m4RHn1w==
-  /rollup-plugin-esbuild/2.3.0_esbuild@0.6.3+rollup@2.22.0:
-    dependencies:
-      '@rollup/pluginutils': 3.1.0_rollup@2.22.0
-      esbuild: 0.6.3
-    dev: true
-    peerDependencies:
-      esbuild: ^0.6.0
-      rollup: '*'
-    resolution:
-      integrity: sha512-lNbWDRaClwXauaIybuaiOBRWgxcp3GkZu0UUix9yH/OHFgVohKmzlU0NtNbvfbxAcfEooyuBRAv6YCaJl1Mbpw==
   /rollup-plugin-svelte/5.2.3_rollup@2.22.0+svelte@3.24.0:
     dependencies:
       require-relative: 0.8.7
@@ -1424,9 +1406,7 @@ specifiers:
   '@babel/core': ^7.10.5
   '@babel/preset-env': ^7.10.4
   '@rollup/plugin-babel': ^5.1.0
-  esbuild: ^0.6.3
   rollup: ^2.22.0
-  rollup-plugin-esbuild: ^2.3.0
   rollup-plugin-svelte: ^5.2.3
   rollup-plugin-terser: ^6.1.0
   svelte: ^3.24.0
