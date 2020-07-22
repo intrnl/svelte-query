@@ -32,7 +32,7 @@ let config = {
       ],
     },
   ],
-  external: ['svelte', 'svelte/internal', 'svelte/store'],
+  external: ['svelte', 'svelte/internal'],
   plugins: [
     svelte({ immutable: true }),
     esbuild({ target: 'es6', watch }),
