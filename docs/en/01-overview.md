@@ -24,9 +24,9 @@ being like this.
 ```
 
 You could cobble up a solution using general purpose state management libraries
-like Redux to store and provide those data throughout your app, but these kinds
-of solutions tends to miss out on the differences that async or server state
-has, which is:
+like Redux to store and provide those data throughout your application, but
+these kinds of solutions tends to miss out on the differences that async or
+server state has, which is:
 
 - Server state is persisted in a location you don't control or own
 - Server state requires asynchronous APIs for it to be fetched or updated
@@ -69,7 +69,7 @@ On a more technical note, it will likely:
 ## Show me the code!
 
 In the example below, you can see React Query for Svelte in its basic and
-simple form being used to fetch the GitHub stats for its GitHub repository.
+simple form being used to fetch the stats for its GitHub repository.
 
 [Open in Svelte REPL](https://svelte.dev/repl/32932348da304353bd74785df1b7842f?version=3.24.0)
 
