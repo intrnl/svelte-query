@@ -1,4 +1,4 @@
 # React Query for Svelte documentation
 
 Available in...
-- [English](./en/index.md)
+- [English](./en/00-index.md)
