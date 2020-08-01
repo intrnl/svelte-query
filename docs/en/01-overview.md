@@ -88,7 +88,7 @@ simple form being used to fetch the stats for its GitHub repository.
 {#if status === 'loading'}
   <div>Loading...</div>
 {:else if status === 'error'}
-	<div>An error has occured: {error.message}</div>
+  <div>An error has occured: {error.message}</div>
 {:else}
   <div>
     <h1>{data.name}</h1>
