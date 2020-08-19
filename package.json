@@ -7,7 +7,6 @@
   "source": "lib/index.ts",
   "main": "dist/svelte-query.js",
   "module": "dist/svelte-query.mjs",
-  "svelte": "lib/index.js",
   "types": "types/index.d.ts",
   "sideEffects": false,
   "files": [
