@@ -4,7 +4,7 @@
   "version": "0.1.7",
   "author": "intrnl",
   "license": "MIT",
-  "source": "lib-new/index.ts",
+  "source": "lib/index.ts",
   "main": "dist/svelte-query.js",
   "module": "dist/svelte-query.mjs",
   "svelte": "lib/index.js",
