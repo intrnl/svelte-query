@@ -1,6 +1,6 @@
 <script>
 	import { setContext } from 'svelte';
-	import { queryConfigContext, getQueryConfig } from './context';
+	import { queryConfigContext, getQueryConfig } from '../context';
 
 	export let config;
 

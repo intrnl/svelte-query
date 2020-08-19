@@ -1,7 +1,7 @@
 <script>
 	import { onMount, setContext } from 'svelte';
-	import { queryCacheContext } from './context';
-	import { makeQueryCache, queryCaches } from './core';
+	import { queryCacheContext } from '../context';
+	import { makeQueryCache, queryCaches } from '../core';
 
 	export let queryCache;
 
