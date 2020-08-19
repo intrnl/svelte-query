@@ -2,7 +2,9 @@ devDependencies:
   '@babel/core': 7.11.1
   '@babel/preset-env': 7.11.0_@babel+core@7.11.1
   '@rollup/plugin-babel': 5.2.0_@babel+core@7.11.1+rollup@2.26.3
+  esbuild: 0.6.26
   rollup: 2.26.3
+  rollup-plugin-esbuild: 2.4.2_esbuild@0.6.26+rollup@2.26.3
   rollup-plugin-svelte: 5.2.3_rollup@2.26.3+svelte@3.24.1
   rollup-plugin-terser: 7.0.0_rollup@2.26.3
   svelte: 3.24.1
@@ -1065,6 +1067,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-7x2S3yUrspNHQOoPk+Eo+iHViSiJiEGPI6BpmLy1eT2KRNGCkBt/NUYqjfXLd1DpDCQp7n3+LfA1RkbG+LqTZQ==
+  /esbuild/0.6.26:
+    dev: true
+    hasBin: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-4NB2I2g6m/ggI7e3Bqv9862i+CgkizS6ehTsrgrkmXlQAI7rGsWIRteYMpmc2wCavCpAHIP5ae3z5DlCG/p11A==
   /escalade/3.0.2:
     dev: true
     engines:
@@ -1150,6 +1158,12 @@ packages:
       node: '>= 10.13.0'
     resolution:
       integrity: sha512-Vmpn2F6IASefL+DVBhPzI2J9/GJUsqzomdeN+P+dK8/jKxbh8R3BtFnx3FIta7wYlPU62cpJMJQo4kuOowcMnw==
+  /joycon/2.2.5:
+    dev: true
+    engines:
+      node: '>=6'
+    resolution:
+      integrity: sha512-YqvUxoOcVPnCp0VU1/56f+iKSdvIRJYPznH22BdXV3xMk75SFXhWeJkZ8C9XxUWt1b5x2X1SxuFygW1U0FmkEQ==
   /js-tokens/4.0.0:
     dev: true
     resolution:
@@ -1305,6 +1319,20 @@ packages:
     dev: true
     resolution:
       integrity: sha512-ic+7JYiV8Vi2yzQGFWOkiZD5Z9z7O2Zhm9XMaTxdJExKasieFCr+yXZ/WmXsckHiKl12ar0y6XiXDx3m4RHn1w==
+  /rollup-plugin-esbuild/2.4.2_esbuild@0.6.26+rollup@2.26.3:
+    dependencies:
+      '@rollup/pluginutils': 3.1.0_rollup@2.26.3
+      esbuild: 0.6.26
+      joycon: 2.2.5
+      strip-json-comments: 3.1.1
+    dev: true
+    engines:
+      node: '>=12'
+    peerDependencies:
+      esbuild: ^0.6.0
+      rollup: '*'
+    resolution:
+      integrity: sha512-GJOaC2onOPcCN0w7tYv60Thg3ciX40YRubeGyS/DRo862udAiFuQGTIBSyNX20EWyvYLZmZ967ziGdzUJtIaAg==
   /rollup-plugin-svelte/5.2.3_rollup@2.26.3+svelte@3.24.1:
     dependencies:
       require-relative: 0.8.7
@@ -1392,6 +1420,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==
+  /strip-json-comments/3.1.1:
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
   /supports-color/5.5.0:
     dependencies:
       has-flag: 3.0.0
@@ -1469,7 +1503,9 @@ specifiers:
   '@babel/core': ^7.11.1
   '@babel/preset-env': ^7.11.0
   '@rollup/plugin-babel': ^5.2.0
+  esbuild: ^0.6.26
   rollup: ^2.26.3
+  rollup-plugin-esbuild: ^2.4.2
   rollup-plugin-svelte: ^5.2.3
   rollup-plugin-terser: ^7.0.0
   svelte: ^3.24.1

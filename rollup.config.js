@@ -1,42 +1,27 @@
+import pkg from './package.json';
+
 import svelte from 'rollup-plugin-svelte';
-import { terser } from 'rollup-plugin-terser';
-import babel from '@rollup/plugin-babel';
+import esbuild from 'rollup-plugin-esbuild';
 
 
 let watch = !!process.env.ROLLUP_WATCH;
 
 /** @type {import('rollup').RollupOptions} */
-let config = {
-  input: './lib/index.js',
+let newConfig = {
+  input: pkg.source,
   output: [
-    {
-      file: './dist/svelte-query.js',
-      format: 'cjs',
-    },
-    {
-      file: './dist/svelte-query.mjs',
-      format: 'esm',
-    },
-    !watch && {
-      file: './dist/svelte-query.min.js',
-      format: 'cjs',
-      plugins: [
-        terser(),
-      ],
-    },
-    !watch && {
-      file: './dist/svelte-query.min.mjs',
-      format: 'esm',
-      plugins: [
-        terser(),
-      ],
-    },
+    { file: pkg.module, format: 'esm' },
+    { file: pkg.main, format: 'cjs' },
   ],
+
   external: ['svelte', 'svelte/internal', 'svelte/store'],
   plugins: [
     svelte({ immutable: true }),
-    babel(),
+    esbuild({
+      watch,
+      include: '**/*.{ts,svelte}',
+    }),
   ],
 };
 
-export default config;
+export default newConfig;
