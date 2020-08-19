@@ -3,23 +3,23 @@ import { getQueryCache } from './context';
 
 
 export let isFetching: Readable<number> = {
-  subscribe (listener) {
-    function notify (value: number) {
-      try { listener(value) } catch {}
-    }
+	subscribe (listener) {
+		function notify (value: number) {
+			try { listener(value) } catch {}
+		}
 
-    let queryCache = getQueryCache();
-    let prev = queryCache.isFetching;
+		let queryCache = getQueryCache();
+		let prev = queryCache.isFetching;
 
-    notify(prev);
+		notify(prev);
 
-    return queryCache.subscribe((cache) => {
-      let curr = cache.isFetching;
+		return queryCache.subscribe((cache) => {
+			let curr = cache.isFetching;
 
-      if (curr !== prev) {
-        notify(curr);
-        prev = curr;
-      }
-    });
-  },
+			if (curr !== prev) {
+				notify(curr);
+				prev = curr;
+			}
+		});
+	},
 };

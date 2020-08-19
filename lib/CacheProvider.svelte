@@ -1,28 +1,28 @@
 <script>
-  import { onMount, setContext } from 'svelte';
-  import { queryCacheContext } from './context';
-  import { makeQueryCache, queryCaches } from './core';
+	import { onMount, setContext } from 'svelte';
+	import { queryCacheContext } from './context';
+	import { makeQueryCache, queryCaches } from './core';
 
-  export let queryCache;
+	export let queryCache;
 
-  let resolvedQueryCache = queryCache || makeQueryCache();
+	let resolvedQueryCache = queryCache || makeQueryCache();
 
-  setContext(queryCacheContext, resolvedQueryCache);
+	setContext(queryCacheContext, resolvedQueryCache);
 
-  onMount(() => {
-    queryCaches.push(resolvedQueryCache);
+	onMount(() => {
+		queryCaches.push(resolvedQueryCache);
 
-    return () => {
-      let i = queryCaches.indexOf(resolvedQueryCache);
+		return () => {
+			let i = queryCaches.indexOf(resolvedQueryCache);
 
-      if (i > -1) {
-        queryCaches.splice(i, 1);
-      }
-      if (!queryCache) {
-        resolvedQueryCache.clear({ notify: false });
-      }
-    };
-  });
+			if (i > -1) {
+				queryCaches.splice(i, 1);
+			}
+			if (!queryCache) {
+				resolvedQueryCache.clear({ notify: false });
+			}
+		};
+	});
 </script>
 
 <slot></slot>

@@ -6,27 +6,27 @@ import { useQueryArgs } from './utils';
 
 
 export function query<Result, Error> (...args: any[]): Readable<QueryResult<Result, Error>> {
-  let [key, config] = useQueryArgs<Result, Error>(args);
-  let query = baseQuery(key, config);
-  
-  return derived(query, ($query) => ({
-    ...$query,
-    data: $query.query.state.data,
-  }));
+	let [key, config] = useQueryArgs<Result, Error>(args);
+	let query = baseQuery(key, config);
+
+	return derived(query, ($query) => ({
+		...$query,
+		data: $query.query.state.data,
+	}));
 }
 
 export function infiniteQuery<Result, Error> (
-  ...args: any[]
+	...args: any[]
 ): Readable<InfiniteQueryResult<Result, Error>> {
-  let [key, config] = useQueryArgs<Result[], Error>(args);
-  config.infinite = true;
+	let [key, config] = useQueryArgs<Result[], Error>(args);
+	config.infinite = true;
 
-  let query = baseQuery(key, config);
+	let query = baseQuery(key, config);
 
-  return derived(query, ($query) => ({
-    ...$query,
-    data: $query.query.state.data,
-    canFetchMore: $query.query.state.canFetchMore,
-    fetchMore: $query.query.fetchMore.bind($query.query),
-  }));
+	return derived(query, ($query) => ({
+		...$query,
+		data: $query.query.state.data,
+		canFetchMore: $query.query.state.canFetchMore,
+		fetchMore: $query.query.fetchMore.bind($query.query),
+	}));
 }

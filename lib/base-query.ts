@@ -6,27 +6,27 @@ import { getQueryInfo } from './utils';
 
 
 export function baseQuery<Result, Error> (
-  key: QueryKey,
-  config: QueryConfig<Result, Error> = {}
+	key: QueryKey,
+	config: QueryConfig<Result, Error> = {}
 ): Readable<QueryResultBase<Result, Error>> {
-  let queryCache = getQueryCache();
-  let query = queryCache.buildQuery(key, config);
+	let queryCache = getQueryCache();
+	let query = queryCache.buildQuery(key, config);
 
-  return readable(getQueryInfo(query), (set) => {
-    function notify () {
-      set(getQueryInfo(query));
-    }
+	return readable(getQueryInfo(query), (set) => {
+		function notify () {
+			set(getQueryInfo(query));
+		}
 
-    let instance = query.subscribe(notify);
-    instance.updateConfig(config);
+		let instance = query.subscribe(notify);
+		instance.updateConfig(config);
 
-    notify();
+		notify();
 
-    if (config.enabled) {
-      instance.run();
-    }
+		if (config.enabled) {
+			instance.run();
+		}
 
-    return instance.unsubscribe;
-  });
+		return instance.unsubscribe;
+	});
 }
 
