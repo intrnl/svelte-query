@@ -5,6 +5,4 @@ export { default as QueryConfigProvider } from './components/ConfigProvider.svel
 
 export { getQueryCache } from './context';
 
-export { query, infiniteQuery } from './use-query';
-export { createPaginatedQuery } from './use-paginatedquery';
 export { isFetching } from './use-isfetching';

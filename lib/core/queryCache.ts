@@ -6,17 +6,15 @@ import {
   isObject,
   Updater,
 } from './utils'
-import { defaultConfigRef, ReactQueryConfigRef } from './config'
+import { getDefaultedQueryConfig } from './config'
 import { Query } from './query'
 import {
   QueryConfig,
+  QueryFunction,
   QueryKey,
-  QueryKeyWithoutObject,
   ReactQueryConfig,
-  QueryKeyWithoutArray,
-  QueryKeyWithoutObjectAndArray,
-  TupleQueryFunction,
-  TupleQueryKey,
+  TypedQueryFunction,
+  TypedQueryFunctionArgs,
 } from './types'
 
 // TYPES
@@ -49,13 +47,9 @@ type QueryPredicate = QueryKey | QueryPredicateFn | true
 
 type QueryPredicateFn = (query: Query<unknown, unknown>) => boolean
 
-export interface PrefetchQueryObjectConfig<
-  TResult,
-  TError,
-  TKey extends TupleQueryKey
-> {
+export interface PrefetchQueryObjectConfig<TResult, TError> {
   queryKey: QueryKey
-  queryFn?: TupleQueryFunction<TResult, TKey>
+  queryFn?: QueryFunction<TResult>
   config?: QueryConfig<TResult, TError>
   options?: PrefetchQueryOptions
 }
@@ -76,7 +70,6 @@ export class QueryCache {
   isFetching: number
 
   private config: QueryCacheConfig
-  private configRef: ReactQueryConfigRef
   private globalListeners: QueryCacheListener[]
 
   constructor(config?: QueryCacheConfig) {
@@ -84,25 +77,6 @@ export class QueryCache {
 
     // A frozen cache does not add new queries to the cache
     this.globalListeners = []
-
-    this.configRef = this.config.defaultConfig
-      ? {
-          current: {
-            shared: {
-              ...defaultConfigRef.current.shared,
-              ...this.config.defaultConfig.shared,
-            },
-            queries: {
-              ...defaultConfigRef.current.queries,
-              ...this.config.defaultConfig.queries,
-            },
-            mutations: {
-              ...defaultConfigRef.current.mutations,
-              ...this.config.defaultConfig.mutations,
-            },
-          },
-        }
-      : defaultConfigRef
 
     this.queries = {}
     this.isFetching = 0
@@ -118,7 +92,15 @@ export class QueryCache {
   }
 
   getDefaultConfig() {
-    return this.configRef.current
+    return this.config.defaultConfig
+  }
+
+  getDefaultedQueryConfig<TResult, TError>(
+    config?: QueryConfig<TResult, TError>
+  ): QueryConfig<TResult, TError> {
+    return getDefaultedQueryConfig(this.getDefaultConfig(), undefined, config, {
+      queryCache: this,
+    })
   }
 
   subscribe(listener: QueryCacheListener): () => void {
@@ -149,8 +131,8 @@ export class QueryCache {
     if (typeof predicate === 'function') {
       predicateFn = predicate as QueryPredicateFn
     } else {
-      const [queryHash, queryKey] = this.configRef.current.queries!
-        .queryKeySerializerFn!(predicate)
+      const config = this.getDefaultedQueryConfig()
+      const [queryHash, queryKey] = config.queryKeySerializerFn!(predicate)
 
       predicateFn = d =>
         options?.exact
@@ -195,11 +177,8 @@ export class QueryCache {
     try {
       await Promise.all(
         this.getQueries(predicate, options).map(query => {
-          if (query.instances.length) {
-            if (
-              refetchActive &&
-              query.instances.some(instance => instance.config.enabled)
-            ) {
+          if (query.observers.length) {
+            if (refetchActive && query.isEnabled()) {
               return query.fetch()
             }
           } else {
@@ -226,13 +205,9 @@ export class QueryCache {
 
   buildQuery<TResult, TError = unknown>(
     userQueryKey: QueryKey,
-    queryConfig: QueryConfig<TResult, TError> = {}
+    queryConfig?: QueryConfig<TResult, TError>
   ): Query<TResult, TError> {
-    const config = {
-      ...this.configRef.current.shared!,
-      ...this.configRef.current.queries!,
-      ...queryConfig,
-    } as QueryConfig<TResult, TError>
+    const config = this.getDefaultedQueryConfig(queryConfig)
 
     const [queryHash, queryKey] = config.queryKeySerializerFn!(userQueryKey)
 
@@ -240,7 +215,7 @@ export class QueryCache {
 
     if (this.queries[queryHash]) {
       query = this.queries[queryHash] as Query<TResult, TError>
-      query.config = config
+      query.updateConfig(config)
     }
 
     if (!query) {
@@ -253,18 +228,6 @@ export class QueryCache {
           this.notifyGlobalListeners(query)
         },
       })
-
-      // If the query started with data, schedule
-      // a stale timeout
-      if (!isServer && query.state.data) {
-        query.scheduleStaleTimeout()
-
-        // Simulate a query healing process
-        query.heal()
-        // Schedule for garbage collection in case
-        // nothing subscribes to this query
-        query.scheduleGarbageCollection()
-      }
 
       if (!this.config.frozen) {
         this.queries[queryHash] = query
@@ -286,61 +249,42 @@ export class QueryCache {
   }
 
   // Parameter syntax with optional prefetch options
-  async prefetchQuery<TResult, TError, TKey extends QueryKeyWithoutObject>(
-    queryKey: TKey,
-    options?: PrefetchQueryOptions
-  ): Promise<TResult | undefined>
-
-  // Parameter syntax with config and optional prefetch options
-  async prefetchQuery<TResult, TError, TKey extends QueryKeyWithoutObject>(
-    queryKey: TKey,
-    config: QueryConfig<TResult, TError>,
+  async prefetchQuery<TResult = unknown, TError = unknown>(
+    queryKey: QueryKey,
     options?: PrefetchQueryOptions
   ): Promise<TResult | undefined>
 
   // Parameter syntax with query function and optional prefetch options
-  async prefetchQuery<
-    TResult,
-    TError,
-    TKey extends QueryKeyWithoutObjectAndArray
-  >(
-    queryKey: TKey,
-    queryFn: TupleQueryFunction<TResult, [TKey]>,
+  async prefetchQuery<TResult, TError, TArgs extends TypedQueryFunctionArgs>(
+    queryKey: QueryKey,
+    queryFn: TypedQueryFunction<TResult, TArgs>,
     options?: PrefetchQueryOptions
   ): Promise<TResult | undefined>
 
-  async prefetchQuery<TResult, TError, TKey extends TupleQueryKey>(
-    queryKey: TKey,
-    queryFn: TupleQueryFunction<TResult, TKey>,
+  async prefetchQuery<TResult = unknown, TError = unknown>(
+    queryKey: QueryKey,
+    queryFn: QueryFunction<TResult>,
     options?: PrefetchQueryOptions
   ): Promise<TResult | undefined>
 
   // Parameter syntax with query function, config and optional prefetch options
-  async prefetchQuery<
-    TResult,
-    TError,
-    TKey extends QueryKeyWithoutObjectAndArray
-  >(
-    queryKey: TKey,
-    queryFn: TupleQueryFunction<TResult, [TKey]>,
+  async prefetchQuery<TResult, TError, TArgs extends TypedQueryFunctionArgs>(
+    queryKey: QueryKey,
+    queryFn: TypedQueryFunction<TResult, TArgs>,
     queryConfig: QueryConfig<TResult, TError>,
     options?: PrefetchQueryOptions
   ): Promise<TResult | undefined>
 
-  async prefetchQuery<TResult, TError, TKey extends TupleQueryKey>(
-    queryKey: TKey,
-    queryFn: TupleQueryFunction<TResult, TKey>,
+  async prefetchQuery<TResult = unknown, TError = unknown>(
+    queryKey: QueryKey,
+    queryFn: QueryFunction<TResult>,
     queryConfig: QueryConfig<TResult, TError>,
     options?: PrefetchQueryOptions
   ): Promise<TResult | undefined>
 
   // Object syntax
-  async prefetchQuery<TResult, TError, TKey extends QueryKeyWithoutArray>(
-    config: PrefetchQueryObjectConfig<TResult, TError, [TKey]>
-  ): Promise<TResult | undefined>
-
-  async prefetchQuery<TResult, TError, TKey extends TupleQueryKey>(
-    config: PrefetchQueryObjectConfig<TResult, TError, TKey>
+  async prefetchQuery<TResult = unknown, TError = unknown>(
+    config: PrefetchQueryObjectConfig<TResult, TError>
   ): Promise<TResult | undefined>
 
   // Implementation
@@ -362,6 +306,7 @@ export class QueryCache {
       TError,
       PrefetchQueryOptions | undefined
     >(args)
+
     // https://github.com/tannerlinsley/react-query/issues/652
     const configWithoutRetry = { retry: false, ...config }
 
@@ -386,7 +331,7 @@ export class QueryCache {
   setQueryData<TResult, TError = unknown>(
     queryKey: QueryKey,
     updater: Updater<TResult | undefined, TResult>,
-    config: QueryConfig<TResult, TError> = {}
+    config?: QueryConfig<TResult, TError>
   ) {
     let query = this.getQuery<TResult, TError>(queryKey)
 
