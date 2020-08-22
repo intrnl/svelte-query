@@ -1,3 +1,3 @@
 `react-query/src/core`
 
-Taken from `v2.8.0` `73ccba8`
+Taken from `v2.9.0` `5d1dc70`
