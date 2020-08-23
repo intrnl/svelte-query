@@ -71,11 +71,13 @@ On a more technical note, it will likely:
 In the example below, you can see React Query for Svelte in its basic and
 simple form being used to fetch the stats for its GitHub repository.
 
+[Show in Svelte REPL](https://svelte.dev/repl/32932348da304353bd74785df1b7842f?version=3.24.1)
+
 ```svelte
 <script>
   import { query } from '@intrnl/svelte-query';
 
-  function fetchRepoData () {
+  async function fetchRepoData () {
     let resp = await fetch('https://api.github.com/repos/intrnl/svelte-query');
 
     if (!resp.ok) throw new Error(`HTTP error: ${resp.status}`);
