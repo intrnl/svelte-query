@@ -1,7 +1,6 @@
 import { getContext } from 'svelte';
-import { queryCache as defaultQueryCache } from './core';
-import { defaultConfigRef } from './core/config';
-import type { QueryCache } from './core';
+import { queryCache as defaultQueryCache } from './core/queryCache';
+import type { QueryCache } from './core/queryCache';
 import type { ReactQueryConfig } from './core/types';
 
 
@@ -12,6 +11,6 @@ export function getQueryCache (): QueryCache {
 	return getContext(queryCacheContext) || defaultQueryCache;
 }
 
-export function getQueryConfig (): ReactQueryConfig {
-	return getContext(queryConfigContext) || defaultConfigRef.current;
+export function getQueryConfig (): ReactQueryConfig | undefined {
+	return getContext(queryConfigContext);
 }

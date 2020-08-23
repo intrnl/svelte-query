@@ -1,66 +1,67 @@
 import { derived } from 'svelte/store';
 import type { Readable } from 'svelte/store';
-import { PaginatedQueryResult, QueryStatus } from './core';
-import { getStatusProps } from './core/utils';
+import type {
+	QueryFunction,
+	TypedQueryFunction,
+	TypedQueryFunctionArgs,
+	QueryKey,
+	PaginatedQueryResult,
+	PaginatedQueryConfig,
+} from './core/types';
 import { baseQuery } from './base-query';
-import { useQueryArgs } from './utils';
+import { getQueryArgs } from './core/utils';
 
 
-// Paginated query is like a "lag" query,
-// as the query changes, we need to keep results from the last query and use
-// them as placeholder data while we load the next one
-// Due to how Svelte works, holding on to the previous result isn't possible
-// without us having an intermediary function
-export function createPaginatedQuery () {
-	// Keep track of the latest data result
-	let lastDataRef: any;
+// Parameter syntax with optional config
+export function paginatedQuery<Result = unknown, Error = unknown> (
+	queryKey: QueryKey,
+	queryConfig?: PaginatedQueryConfig<Result, Error>
+): UsePaginatedQueryResult<Result, Error>
 
-	return function paginatedQuery<Result, Error> (
-		...args: any[]
-	): Readable<PaginatedQueryResult<Result, Error>> {
-		let [key, config] = useQueryArgs<Result, Error>(args);
+// Parameter syntax with query function and optional config
+export function paginatedQuery<Result, Error, Args extends TypedQueryFunctionArgs> (
+	queryKey: QueryKey,
+	queryFn: TypedQueryFunction<Result, Args>,
+	queryConfig?: PaginatedQueryConfig<Result, Error>
+): UsePaginatedQueryResult<Result, Error>
 
-		// If the latest data is already present, initialData becomes unnecessary
-		if (lastDataRef !== undefined) {
-			delete config.initialData;
-		}
+export function paginatedQuery<Result = unknown, Error = unknown> (
+	queryKey: QueryKey,
+	queryFn: QueryFunction<Result>,
+	queryConfig?: PaginatedQueryConfig<Result, Error>
+): UsePaginatedQueryResult<Result, Error>
 
-		// Make the query as usual
-		let query = baseQuery(key, config);
+// Object syntax
+export function paginatedQuery<Result = unknown, Error = unknown> (
+	config: UsePaginatedQueryObjectConfig<Result, Error>
+): UsePaginatedQueryResult<Result, Error>
 
-		return derived(query, ($query) => {
-			// Get the real data and status from query
-			let { data: latestData, status } = $query.query.state;
+// Implementation
+export function paginatedQuery<Result, Error> (
+	...args: any[]
+): UsePaginatedQueryResult<Result, Error> {
+	let conf = getQueryArgs<Result, Error>(args)[1];
+	let base = baseQuery({ ...conf, keepPreviousData: true });
 
-			// If query is disabled, get rid of latest data if query is disabled
-			if ($query.query.config.enabled) {
-				lastDataRef = undefined;
-			}
+	let { subscribe } = derived(base, ($result) => ({
+		...$result,
+		resolvedData: $result.data,
+		latestData: $result.query.state.data === $result.data
+			? $result.data
+			: undefined,
+	}));
 
-			// If the query succeeds, update latest data result
-			if (status === 'success' && latestData !== undefined) {
-				lastDataRef = latestData;
-			}
+	return { ...base, subscribe };
+}
 
-			// "Resolved" data should either be the latest one, or the previous one
-			// if it's not available yet
-			let resolvedData = latestData === undefined
-				? lastDataRef
-				: latestData;
 
-			// Pretend the query succeed even though it's still loading, if the
-			// previous one is available
-			if (status === QueryStatus.Success && resolvedData !== undefined) {
-				let overrides = getStatusProps(QueryStatus.Success);
-				Object.assign($query.query.state, overrides);
-				Object.assign($query, overrides);
-			}
+export interface UsePaginatedQueryResult<Result, Error>
+extends Readable<PaginatedQueryResult<Result, Error>> {
+	configure (newConfig: Partial<PaginatedQueryConfig<Result, Error>>): void,
+	refetch (key: QueryKey): void,
+}
 
-			return {
-				...$query,
-				resolvedData,
-				latestData,
-			};
-		});
-	}
+export interface UsePaginatedQueryObjectConfig<Result, Error> {
+	queryFn?: QueryFunction<Result>,
+	config?: PaginatedQueryConfig<Result, Error>,
 }

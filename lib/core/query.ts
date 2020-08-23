@@ -6,10 +6,9 @@ import {
   noop,
   Console,
   getStatusProps,
-  shallowEqual,
   Updater,
+  replaceEqualDeep,
 } from './utils'
-import { QueryInstance, OnStateUpdateFunction } from './queryInstance'
 import {
   ArrayQueryKey,
   InfiniteQueryConfig,
@@ -19,7 +18,8 @@ import {
   QueryFunction,
   QueryStatus,
 } from './types'
-import { QueryCache } from './queryCache'
+import type { QueryCache } from './queryCache'
+import { QueryObserver, UpdateListener } from './queryObserver'
 
 // TYPES
 
@@ -39,7 +39,7 @@ export interface QueryState<TResult, TError> {
   isError: boolean
   isFetched: boolean
   isFetching: boolean
-  isFetchingMore?: IsFetchingMoreValue
+  isFetchingMore: IsFetchingMoreValue
   isIdle: boolean
   isLoading: boolean
   isStale: boolean
@@ -81,7 +81,7 @@ interface FetchAction {
 
 interface SuccessAction<TResult> {
   type: ActionType.Success
-  updater: Updater<TResult | undefined, TResult>
+  data: TResult | undefined
   isStale: boolean
 }
 
@@ -111,7 +111,7 @@ export class Query<TResult, TError> {
   queryKey: ArrayQueryKey
   queryHash: string
   config: QueryConfig<TResult, TError>
-  instances: QueryInstance<TResult, TError>[]
+  observers: QueryObserver<TResult, TError>[]
   state: QueryState<TResult, TError>
   shouldContinueRetryOnFocus?: boolean
   promise?: Promise<TResult | undefined>
@@ -131,17 +131,14 @@ export class Query<TResult, TError> {
     this.queryKey = init.queryKey
     this.queryHash = init.queryHash
     this.notifyGlobalListeners = init.notifyGlobalListeners
-    this.instances = []
+    this.observers = []
     this.state = getDefaultState(init.config)
 
     if (init.config.infinite) {
       const infiniteConfig = init.config as InfiniteQueryConfig<TResult, TError>
       const infiniteData = (this.state.data as unknown) as TResult[] | undefined
 
-      if (
-        typeof infiniteData !== 'undefined' &&
-        typeof this.state.canFetchMore === 'undefined'
-      ) {
+      if (typeof infiniteData !== 'undefined') {
         this.fetchMoreVariable = infiniteConfig.getFetchMore(
           infiniteData[infiniteData.length - 1],
           infiniteData
@@ -154,17 +151,29 @@ export class Query<TResult, TError> {
         this.pageVariables = [[...this.queryKey]]
       }
     }
+
+    // If the query started with data, schedule
+    // a stale timeout
+    if (!isServer && this.state.data) {
+      this.scheduleStaleTimeout()
+
+      // Simulate a query healing process
+      this.heal()
+
+      // Schedule for garbage collection in case
+      // nothing subscribes to this query
+      this.scheduleGarbageCollection()
+    }
+  }
+
+  updateConfig(config: QueryConfig<TResult, TError>): void {
+    this.config = config
   }
 
   private dispatch(action: Action<TResult, TError>): void {
-    const newState = queryReducer(this.state, action)
-
-    // Only update state if something has changed
-    if (!shallowEqual(this.state, newState)) {
-      this.state = newState
-      this.instances.forEach(d => d.onStateUpdate(newState, action))
-      this.notifyGlobalListeners(this)
-    }
+    this.state = queryReducer(this.state, action)
+    this.observers.forEach(d => d.onQueryUpdate(this.state, action))
+    this.notifyGlobalListeners(this)
   }
 
   scheduleStaleTimeout(): void {
@@ -174,11 +183,7 @@ export class Query<TResult, TError> {
 
     this.clearStaleTimeout()
 
-    if (this.state.isStale) {
-      return
-    }
-
-    if (this.config.staleTime === Infinity) {
+    if (this.state.isStale || this.config.staleTime === Infinity) {
       return
     }
 
@@ -190,10 +195,6 @@ export class Query<TResult, TError> {
   invalidate(): void {
     this.clearStaleTimeout()
 
-    if (!this.queryCache.queries[this.queryHash]) {
-      return
-    }
-
     if (this.state.isStale) {
       return
     }
@@ -202,11 +203,11 @@ export class Query<TResult, TError> {
   }
 
   scheduleGarbageCollection(): void {
-    this.clearCacheTimeout()
-
-    if (!this.queryCache.queries[this.queryHash]) {
+    if (isServer) {
       return
     }
+
+    this.clearCacheTimeout()
 
     if (this.config.cacheTime === Infinity) {
       return
@@ -249,9 +250,9 @@ export class Query<TResult, TError> {
     delete this.promise
   }
 
-  clearIntervals(): void {
-    this.instances.forEach(instance => {
-      instance.clearInterval()
+  private clearTimersObservers(): void {
+    this.observers.forEach(observer => {
+      observer.clearRefetchInterval()
     })
   }
 
@@ -283,11 +284,27 @@ export class Query<TResult, TError> {
   }
 
   setData(updater: Updater<TResult | undefined, TResult>): void {
+    const prevData = this.state.data
+
+    // Get the new data
+    let data: TResult | undefined = functionalUpdate(updater, prevData)
+
+    // Structurally share data between prev and new data if needed
+    if (this.config.structuralSharing) {
+      data = replaceEqualDeep(prevData, data)
+    }
+
+    // Use prev data if an isDataEqual function is defined and returns `true`
+    if (this.config.isDataEqual?.(prevData, data)) {
+      data = prevData
+    }
+
     const isStale = this.config.staleTime === 0
+
     // Set data and mark it as cached
     this.dispatch({
       type: ActionType.Success,
-      updater,
+      data,
       isStale,
     })
 
@@ -301,19 +318,57 @@ export class Query<TResult, TError> {
     this.clearStaleTimeout()
     this.clearCacheTimeout()
     this.clearRetryTimeout()
-    this.clearIntervals()
+    this.clearTimersObservers()
     this.cancel()
     delete this.queryCache.queries[this.queryHash]
     this.notifyGlobalListeners(this)
   }
 
+  isEnabled(): boolean {
+    return this.observers.some(observer => observer.config.enabled)
+  }
+
+  shouldRefetchOnWindowFocus(): boolean {
+    return (
+      this.isEnabled() &&
+      this.state.isStale &&
+      this.observers.some(observer => observer.config.refetchOnWindowFocus)
+    )
+  }
+
   subscribe(
-    onStateUpdate?: OnStateUpdateFunction<TResult, TError>
-  ): QueryInstance<TResult, TError> {
-    const instance = new QueryInstance(this, onStateUpdate)
-    this.instances.push(instance)
+    listener?: UpdateListener<TResult, TError>
+  ): QueryObserver<TResult, TError> {
+    const observer = new QueryObserver<TResult, TError>({
+      queryCache: this.queryCache,
+      queryKey: this.queryKey,
+      ...this.config,
+    })
+
+    observer.subscribe(listener)
+
+    return observer
+  }
+
+  subscribeObserver(observer: QueryObserver<TResult, TError>): void {
+    this.observers.push(observer)
     this.heal()
-    return instance
+  }
+
+  unsubscribeObserver(
+    observer: QueryObserver<TResult, TError>,
+    preventGC?: boolean
+  ): void {
+    this.observers = this.observers.filter(x => x !== observer)
+
+    if (!this.observers.length) {
+      this.cancel()
+
+      if (!preventGC) {
+        // Schedule garbage collection
+        this.scheduleGarbageCollection()
+      }
+    }
   }
 
   // Set up the core fetcher function
@@ -323,7 +378,11 @@ export class Query<TResult, TError> {
   ): Promise<TResult> {
     try {
       // Perform the query
-      const promiseOrValue = fn(...this.config.queryFnParamsFilter!(args))
+      const filter = this.config.queryFnParamsFilter
+      const params = filter ? filter(args) : args
+
+      // Perform the query
+      const promiseOrValue = fn(...params)
 
       this.cancelPromises = () => (promiseOrValue as any)?.cancel?.()
 
@@ -502,13 +561,15 @@ export class Query<TResult, TError> {
       this.cancelled = null
 
       try {
-        // Set up the query refreshing state
-        this.dispatch({ type: ActionType.Fetch })
+        // Set to fetching state if not already in it
+        if (!this.state.isFetching) {
+          this.dispatch({ type: ActionType.Fetch })
+        }
 
         // Try to get the data
         const data = await this.tryFetchData(queryFn!, this.queryKey)
 
-        this.setData(old => (this.config.isDataEqual!(old, data) ? old! : data))
+        this.setData(data)
 
         delete this.promise
 
@@ -573,6 +634,7 @@ function getDefaultState<TResult, TError>(
     error: null,
     isFetched: false,
     isFetching: initialStatus === QueryStatus.Loading,
+    isFetchingMore: false,
     failureCount: 0,
     isStale,
     data: initialData,
@@ -610,7 +672,7 @@ export function queryReducer<TResult, TError>(
       return {
         ...state,
         ...getStatusProps(QueryStatus.Success),
-        data: functionalUpdate(action.updater, state.data),
+        data: action.data,
         error: null,
         isStale: action.isStale,
         isFetched: true,

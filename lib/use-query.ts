@@ -1,32 +1,57 @@
-import { derived } from 'svelte/store';
 import type { Readable } from 'svelte/store';
-import type { QueryResult, InfiniteQueryResult } from './core';
+import type {
+	QueryFunction,
+	TypedQueryFunction,
+	TypedQueryFunctionArgs,
+	QueryKey,
+	QueryResult,
+	QueryConfig,
+} from './core/types';
 import { baseQuery } from './base-query';
-import { useQueryArgs } from './utils';
+import { getQueryArgs } from './core/utils';
 
 
-export function query<Result, Error> (...args: any[]): Readable<QueryResult<Result, Error>> {
-	let [key, config] = useQueryArgs<Result, Error>(args);
-	let query = baseQuery(key, config);
+// Parameter syntax with optional config
+export function query<Result = unknown, Error = unknown> (
+	queryKey: QueryKey,
+	queryConfig?: QueryConfig<Result, Error>
+): UseQueryResult<Result, Error>
 
-	return derived(query, ($query) => ({
-		...$query,
-		data: $query.query.state.data,
-	}));
+// Parameter syntax with query function and optional config
+export function query<Result, Error, Args extends TypedQueryFunctionArgs> (
+	queryKey: QueryKey,
+	queryFn: TypedQueryFunction<Result, Args>,
+	queryConfig?: QueryConfig<Result, Error>
+): UseQueryResult<Result, Error>
+
+export function query<Result = unknown, Error = unknown> (
+	queryKey: QueryKey,
+	queryFn: QueryFunction<Result>,
+	queryConfig?: QueryConfig<Result, Error>
+): UseQueryResult<Result, Error>
+
+// Object syntax
+export function query<Result = unknown, Error = unknown> (
+	config: UseQueryObjectConfig<Result, Error>
+): UseQueryResult<Result, Error>
+
+// Implementation
+export function query<Result, Error> (
+	...args: any[]
+): UseQueryResult<Result, Error> {
+	let conf = getQueryArgs<Result, Error>(args)[1];
+	return baseQuery(conf);
 }
 
-export function infiniteQuery<Result, Error> (
-	...args: any[]
-): Readable<InfiniteQueryResult<Result, Error>> {
-	let [key, config] = useQueryArgs<Result[], Error>(args);
-	config.infinite = true;
 
-	let query = baseQuery(key, config);
+export interface UseQueryResult<Result, Error>
+extends Readable<QueryResult<Result, Error>> {
+	configure (newConfig: Partial<QueryConfig<Result, Error>>): void
+	refetch (key: QueryKey): void,
+}
 
-	return derived(query, ($query) => ({
-		...$query,
-		data: $query.query.state.data,
-		canFetchMore: $query.query.state.canFetchMore,
-		fetchMore: $query.query.fetchMore.bind($query.query),
-	}));
+export interface UseQueryObjectConfig<Result, Error> {
+	queryKey?: QueryKey,
+	queryFn?: QueryFunction<Result>,
+	config?: QueryConfig<Result, Error>,
 }

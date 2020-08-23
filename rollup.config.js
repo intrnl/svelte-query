@@ -8,20 +8,21 @@ let watch = !!process.env.ROLLUP_WATCH;
 
 /** @type {import('rollup').RollupOptions} */
 let newConfig = {
-  input: pkg.source,
-  output: [
-    { file: pkg.module, format: 'esm' },
-    { file: pkg.main, format: 'cjs' },
-  ],
+	input: pkg.source,
+	output: [
+		{ file: pkg.module, format: 'esm' },
+		{ file: pkg.main, format: 'cjs' },
+	],
 
-  external: ['svelte', 'svelte/internal', 'svelte/store'],
-  plugins: [
-    svelte({ immutable: true }),
-    esbuild({
-      watch,
-      include: '**/*.{ts,svelte}',
-    }),
-  ],
+	external: ['svelte', 'svelte/internal', 'svelte/store'],
+	plugins: [
+		svelte({ immutable: true }),
+		esbuild({
+			target: 'es2020',
+			watch,
+			include: '**/*.{ts,svelte}',
+		}),
+	],
 };
 
 export default newConfig;

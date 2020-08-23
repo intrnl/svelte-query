@@ -1,32 +1,30 @@
 import { readable } from 'svelte/store';
-import type { Readable } from 'svelte/store';
-import type { QueryKey, QueryConfig, QueryResultBase } from './core/types';
-import { getQueryCache } from './context';
-import { getQueryInfo } from './utils';
+import { QueryObserver } from './core/queryObserver';
+import type { QueryObserverConfig, QueryKey, QueryResultBase } from './core/types';
+import { useDefaultedQueryConfig } from './utils';
 
 
 export function baseQuery<Result, Error> (
-	key: QueryKey,
-	config: QueryConfig<Result, Error> = {}
-): Readable<QueryResultBase<Result, Error>> {
-	let queryCache = getQueryCache();
-	let query = queryCache.buildQuery(key, config);
+	config: QueryObserverConfig<Result, Error> = {}
+) {
+	config = useDefaultedQueryConfig(config);
 
-	return readable(getQueryInfo(query), (set) => {
-		function notify () {
-			set(getQueryInfo(query));
-		}
+	let observer: QueryObserver<Result, Error> | null = null;
 
-		let instance = query.subscribe(notify);
-		instance.updateConfig(config);
-
-		notify();
-
-		if (config.enabled) {
-			instance.run();
-		}
-
-		return instance.unsubscribe;
+	let { subscribe } = readable({} as QueryResultBase<Result, Error>, (set) => {
+		if (!observer) observer = new QueryObserver(config);
+		set(observer.getCurrentResult());
+		return observer.subscribe(set);
 	});
-}
 
+	function configure (newConfig: Partial<any>) {
+		config = useDefaultedQueryConfig({ ...config, ...newConfig });
+		observer?.updateConfig(config);
+	}
+
+	function refetch (key: QueryKey) {
+		configure({ queryKey: key });
+	}
+
+	return { subscribe, configure, refetch };
+}
