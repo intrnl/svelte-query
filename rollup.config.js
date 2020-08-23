@@ -18,6 +18,7 @@ let newConfig = {
 	plugins: [
 		svelte({ immutable: true }),
 		esbuild({
+			target: 'es2020',
 			watch,
 			include: '**/*.{ts,svelte}',
 		}),

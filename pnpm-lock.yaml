@@ -4,7 +4,7 @@ devDependencies:
   rollup-plugin-esbuild: 2.4.2_esbuild@0.6.26+rollup@2.26.3
   rollup-plugin-svelte: 5.2.3_rollup@2.26.3+svelte@3.24.1
   svelte: 3.24.1
-  typescript: 3.9.7
+  typescript: 4.0.2
 lockfileVersion: 5.1
 packages:
   /@rollup/pluginutils/3.1.0_rollup@2.26.3:
@@ -121,17 +121,17 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-OX/IBVUJSFo1rnznXdwf9rv6LReJ3qQ0PwRjj76vfUWyTfbHbR9OXqJBnUrpjyis2dwYcbT2Zm1DFjOOF1ZbbQ==
-  /typescript/3.9.7:
+  /typescript/4.0.2:
     dev: true
     engines:
       node: '>=4.2.0'
     hasBin: true
     resolution:
-      integrity: sha512-BLbiRkiBzAwsjut4x/dsibSTB6yWpwT5qWmC2OfuCg3GgVQCSgMs4vEctYPhsaGtd0AeuuHMkjZ2h2WG8MSzRw==
+      integrity: sha512-e4ERvRV2wb+rRZ/IQeb3jm2VxBsirQLpQhdxplZ2MEzGvDkkMmPglecnNDfSUBivMjP93vRbngYYDQqQ/78bcQ==
 specifiers:
   esbuild: ^0.6.26
   rollup: ^2.26.3
   rollup-plugin-esbuild: ^2.4.2
   rollup-plugin-svelte: ^5.2.3
   svelte: ^3.24.1
-  typescript: ^3.9.7
+  typescript: ^4.0.2
