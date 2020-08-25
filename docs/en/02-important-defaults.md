@@ -12,8 +12,8 @@ to learn and use this library.
 - Unused query results will be kept for 5 minutes before they are garbage
   collected. This is affected by the `cacheTime` option (in miliseconds)
 - Stale query results will be refetched in the background when the browser
-  window is refocused by the user. This is affected by `refetchOnWindowFocus`
-  option.
+  window is refocused by the user or when the browser is reconnected. This is
+  affected by `refetchOnWindowFocus` and `refetchOnReconnect` option.
 - Failed queries will be retried 3 times with exponential backoff delay before
   being captured and thrown. This is affected by the `retry` option and
   `retryDelay` function.
