@@ -1,7 +1,7 @@
 # React Query for Svelte documentation
 
 - [Overview](./01-overview.md)
-- [Query basics](./02-query-basics.md)
-- [Query keys](./03-query-keys.md)
-- [Displaying global fetching state](./04-global-fetch-state.md)
-- [Refetching on window focus](./05-window-focus-refetching.md)
+- [Query basics](./03-query-basics.md)
+- [Query keys](./04-query-keys.md)
+- [Displaying global fetching state](./05-global-fetch-state.md)
+- [Refetching on window focus](./06-window-focus-refetching.md)
