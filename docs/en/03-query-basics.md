@@ -89,17 +89,3 @@ an indication that the query is being refetched in the background.
   </div>
 {/if}
 ```
-
-If you feel the need to change the query key for refetching a different kind of
-data, the `query` function returns a `refetch` function as well.
-
-```svelte
-<script>
-  let id = 0;
-  let q = query(['item', id], fetchItemListing);
-
-  // Since this is a "reactive" statement, every time `id` changes, it will
-  // call this and refetches the query.
-  $: q.refetch(['item', id]);
-</script>
-```
