@@ -1,3 +1,3 @@
 `react-query/src/core`
 
-Taken from `v2.9.0` `5d1dc70`
+Taken from `v2.12.1` `caa6522`

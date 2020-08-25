@@ -1,6 +1,12 @@
-import { getStatusProps, isServer, isDocumentVisible, Console } from './utils'
+import { getStatusProps, isServer, isDocumentVisible } from './utils'
 import type { QueryResult, QueryObserverConfig } from './types'
-import type { Query, QueryState, Action, FetchMoreOptions } from './query'
+import type {
+  Query,
+  QueryState,
+  Action,
+  FetchMoreOptions,
+  RefetchOptions,
+} from './query'
 
 export type UpdateListener<TResult, TError> = (
   result: QueryResult<TResult, TError>
@@ -37,11 +43,11 @@ export class QueryObserver<TResult, TError> {
     return this.unsubscribe.bind(this)
   }
 
-  unsubscribe(preventGC?: boolean): void {
+  unsubscribe(): void {
     this.started = false
     this.updateListener = undefined
     this.clearRefetchInterval()
-    this.currentQuery.unsubscribeObserver(this, preventGC)
+    this.currentQuery.unsubscribeObserver(this)
   }
 
   updateConfig(config: QueryObserverConfig<TResult, TError>): void {
@@ -86,9 +92,9 @@ export class QueryObserver<TResult, TError> {
     return this.currentQuery.clear()
   }
 
-  async refetch(): Promise<void> {
+  async refetch(options?: RefetchOptions): Promise<TResult | undefined> {
     this.currentQuery.updateConfig(this.config)
-    return this.currentQuery.refetch()
+    return this.currentQuery.refetch(options)
   }
 
   async fetchMore(
@@ -101,10 +107,11 @@ export class QueryObserver<TResult, TError> {
 
   async fetch(): Promise<TResult | undefined> {
     this.currentQuery.updateConfig(this.config)
-    return this.currentQuery.fetch().catch(error => {
-      Console.error(error)
+    try {
+      return await this.currentQuery.fetch()
+    } catch (error) {
       return undefined
-    })
+    }
   }
 
   private optionalFetch(): void {
@@ -203,6 +210,8 @@ export class QueryObserver<TResult, TError> {
     if (newQuery === prevQuery) {
       return false
     }
+
+    newQuery.activateTimeouts()
 
     this.previousResult = this.currentResult
     this.currentQuery = newQuery

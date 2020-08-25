@@ -1,11 +1,12 @@
 import {
-  isServer,
-  getQueryArgs,
-  deepIncludes,
-  Console,
-  isObject,
   Updater,
+  deepIncludes,
   functionalUpdate,
+  getQueryArgs,
+  isDocumentVisible,
+  isObject,
+  isOnline,
+  isServer,
 } from './utils'
 import { getDefaultedQueryConfig } from './config'
 import { Query } from './query'
@@ -301,21 +302,26 @@ export class QueryCache {
     // https://github.com/tannerlinsley/react-query/issues/652
     const configWithoutRetry = { retry: false, ...config }
 
+    let query
     try {
-      const query = this.buildQuery<TResult, TError>(
-        queryKey,
-        configWithoutRetry
-      )
+      query = this.buildQuery<TResult, TError>(queryKey, configWithoutRetry)
       if (options?.force || query.state.isStale) {
         await query.fetch()
       }
       return query.state.data
-    } catch (err) {
+    } catch (error) {
       if (options?.throwOnError) {
-        throw err
+        throw error
       }
-      Console.error(err)
       return
+    } finally {
+      if (query) {
+        // When prefetching, no observer is tied to the query,
+        // so to avoid immediate garbage collection of the still
+        // empty query, we wait with activating timeouts until
+        // the prefetch is done
+        query.activateTimeouts()
+      }
     }
   }
 
@@ -331,11 +337,13 @@ export class QueryCache {
       return
     }
 
-    this.buildQuery<TResult, TError>(queryKey, {
+    const newQuery = this.buildQuery<TResult, TError>(queryKey, {
       initialStale: typeof config?.staleTime === 'undefined',
       initialData: functionalUpdate(updater, undefined),
       ...config,
     })
+
+    newQuery.activateTimeouts()
   }
 }
 
@@ -345,4 +353,18 @@ export const queryCaches = [defaultQueryCache]
 
 export function makeQueryCache(config?: QueryCacheConfig) {
   return new QueryCache(config)
+}
+
+export function onVisibilityOrOnlineChange(isOnlineChange: boolean) {
+  if (isDocumentVisible() && isOnline()) {
+    queryCaches.forEach(queryCache => {
+      queryCache.getQueries(query => {
+        if (isOnlineChange) {
+          query.onOnline()
+        } else {
+          query.onWindowFocus()
+        }
+      })
+    })
+  }
 }
