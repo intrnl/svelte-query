@@ -1,7 +1,7 @@
 {
 	"name": "@intrnl/svelte-query",
 	"description": "Svelte library for managing, caching and syncing asynchronous and remote data",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"author": "intrnl",
 	"license": "MIT",
 	"source": "lib/index.ts",
