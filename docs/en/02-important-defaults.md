@@ -1,4 +1,4 @@
-# Important Defaults
+# Important defaults
 
 Out of the box, this library is configured with aggressive but sane defaults.
 Sometimes these defaults can catch you off guard as a new user, or make learning
