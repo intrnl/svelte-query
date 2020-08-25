@@ -46,6 +46,7 @@ challenges that it brings:
 - Propagating those data quickly to all consumers of that data
 - Handling pagination and infinite scrolling
 - Handling garbage collection of server state when it is unused
+- Sharing structural identities in between query results
 
 If you're not overwhelmed by that list, then you've probably solved all of your
 server state problems already and deserves an award for it. However, for the
