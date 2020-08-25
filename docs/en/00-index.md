@@ -6,3 +6,4 @@
 - [Query keys](./04-query-keys.md)
 - [Displaying global fetching state](./05-global-fetch-state.md)
 - [Refetching on window focus](./06-window-focus-refetching.md)
+- [Disabling/pausing queries](./07-disabling-pausing-queries.md)
