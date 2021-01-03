@@ -1,6 +1,7 @@
 # svelte-query
 
-> **In semi-maintained state:** [Official adapter for Svelte](https://github.com/tanstack/svelte-query) is currently in the works!
+> **Deprecated**  
+> Use the official [@sveltestack/svelte-query](https://github.com/tanstack/svelte-query) instead.
 
 Svelte library for managing, caching and syncing asynchronous and remote data.
 
